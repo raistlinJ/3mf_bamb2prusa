@@ -94,44 +94,53 @@ class ZipProcessorGUI:
     def bambu3mf2prusa3mf(self, input_file=None, output_file=None, extracted_path=None):
         logging.debug("Converting Bambu 3mf to Prusa 3mf")
         # Check if input and output files are provided
-        if input_file == None:
-            input_file = self.input_file
-        if output_file == None:
-            output_file = self.output_file
+        try:
+            if input_file == None:
+                input_file = self.input_file
+            if output_file == None:
+                output_file = self.output_file
 
-        if not input_file or not output_file:
-            self.status_label.config(text="Please provide both input and output files.")
-            return
-        #if we haven't specified an extracted path, we will decompress the zip file
-        if extracted_path==None:
-            extracted_path = self.decompress_zip(input_file)
-        objects_path = os.path.join(extracted_path,"3D","Objects")
-        # Check if the objects directory exists
-        if os.path.exists(objects_path):
-            # Parse all .model files
-            self.bambu_model_paths = list(Path(objects_path).rglob("*.model"))
-            if self.bambu_model_paths == None or self.bambu_model_paths == None:
-                logging.error("No model files found")
-                return 
+            if not input_file or not output_file:
+                self.status_label.config(text="Please provide both input and output files.")
+                return
+            #if we haven't specified an extracted path, we will decompress the zip file
+            if extracted_path==None:
+                extracted_path = self.decompress_zip(input_file)
+            objects_path = os.path.join(extracted_path,"3D","Objects")
+            # Check if the objects directory exists
+            if os.path.exists(objects_path):
+                # Parse all .model files
+                self.bambu_model_paths = list(Path(objects_path).rglob("*.model"))
+                if self.bambu_model_paths == None or self.bambu_model_paths == None:
+                    logging.error("No model files found")
+                    return 
+                
+            # Convert each model file to Prusa format
+            obj_IDs_Elements = []
+            for bmodel_path in self.bambu_model_paths:
+                filename, obj_IDs_Element = self.model_convert_re(bmodel_path)
+                obj_IDs_Elements.append([filename, obj_IDs_Element])
+
+            #inject the objects into the Prusa model template
+            prusamodel_filenames = []
+            for filename, obj_IDs_Element in obj_IDs_Elements:
+                final_prusamodel = self.inject_bobject2pobject(obj_IDs_Element)
+                #final_prusamodels.append([filename, final_prusamodel])
+                #logging.debug(ET.tostring(final_prusamodel, encoding='utf-8', pretty_print=True))
+                self.write_prusa_model(filename, final_prusamodel)
+                prusamodel_filenames.append(filename)
+
+            # Write the final Prusa model files
+            self.generate3mf_file(prusamodel_filenames, output_file)
+            self.status_label.config(text=f"Output file created: {os.path.basename(output_file)}")
+            logging.info(f"Output file created: {os.path.basename(output_file)}")
+        except Exception as e:
+            logging.error(f"An error occurred during processing: {e}")
+            self.status_label.config(text=f"Error: {e}")
+        finally:
+            # Clean up the temporary directory
+            self.cleanup()
             
-        # Convert each model file to Prusa format
-        obj_IDs_Elements = []
-        for bmodel_path in self.bambu_model_paths:
-            filename, obj_IDs_Element = self.model_convert_re(bmodel_path)
-            obj_IDs_Elements.append([filename, obj_IDs_Element])
-
-        #inject the objects into the Prusa model template
-        prusamodel_filenames = []
-        for filename, obj_IDs_Element in obj_IDs_Elements:
-            final_prusamodel = self.inject_bobject2pobject(obj_IDs_Element)
-            #final_prusamodels.append([filename, final_prusamodel])
-            #logging.debug(ET.tostring(final_prusamodel, encoding='utf-8', pretty_print=True))
-            self.write_prusa_model(filename, final_prusamodel)
-            prusamodel_filenames.append(filename)
-
-        # Write the final Prusa model files
-        self.generate3mf_file(prusamodel_filenames, output_file)
-
     def model_convert_re(self, bmodel_path):
         logging.debug(f"Processing model file: {bmodel_path}")
         # Check if the file exists
@@ -308,6 +317,13 @@ class ZipProcessorGUI:
             self.compress_zip(tempdir, output_file)
         except Exception as e:
             logging.error(f"An error occurred while generating 3mf file structure: {e}")
+
+    def cleanup(self):
+        logging.debug("Cleaning up temporary files")
+        # Clean up the temporary directory
+        if os.path.exists(self.temp_3mf_dir):
+            shutil.rmtree(self.temp_3mf_dir)
+        self.status_label.config(text="Temporary files cleaned up.")
 
 def main():
     root = Tk()
