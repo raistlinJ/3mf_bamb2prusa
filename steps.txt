@@ -1,0 +1,16 @@
+Only copy objects that are of type model; ignore all others
+paint_color -> slic3rpe:mmu_segmentation
+paint_seam="[0-9A-Z]*" -> 
+
+Add to bottom; before </model>
+  <build>
+  <item objectid="27" transform="0.799151571 0 0 0 0.799151571 0 0 0 0.799151571 184.67373 221.31425 1.61151839" printable="1"/>
+  ...  
+ </build>
+
+ Add all model names to .rel file, e.g.
+
+ <Relationship Target="/3D/3dmodel.model" Id="rel-1" Type="http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel"/>
+ <Relationship Target="/3D/3dmodel2.model" Id="rel-1" Type="http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel"/>
+
+In model files, remove namespaces and replace with slic3rpe:mmu_segmentation namespaces

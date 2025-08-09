@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<model unit="millimeter" xml:lang="en-US" xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02" xmlns:slic3rpe="http://schemas.slic3r.org/3mf/2017/06">
+ <metadata name="slic3rpe:Version3mf">1</metadata>
+ <metadata name="slic3rpe:MmPaintingVersion">1</metadata>
+ <metadata name="Title">card_earrings_painted</metadata>
+ <metadata name="Designer"></metadata>
+ <metadata name="Description">card_earrings_painted</metadata>
+ <metadata name="Copyright"></metadata>
+ <metadata name="LicenseTerms"></metadata>
+ <metadata name="Rating"></metadata>
+ <metadata name="CreationDate">2025-07-20</metadata>
+ <metadata name="ModificationDate">2025-07-20</metadata>
+ <metadata name="Application">PrusaSlicer-2.9.2</metadata>
+ <resources>
+ </resources>
+ <build>
+ </build>
+</model>
