@@ -154,7 +154,7 @@ class ZipProcessorGUI:
             objects = {}
             #we don't know what encoding is used for the xml string, so we force it to utf-8
             logging.debug(f"Reading model file: {bmodel_path}")
-            with open(bmodel_path, encoding="utf-8") as f:
+            with open(bmodel_path) as f:
                 content = f.read()
             #Add any necessary namespaces and remove any unwanted attributes; if file formats change, this may need to be updated
             #remove any namespaces since we're doing direct string replacements
@@ -162,7 +162,7 @@ class ZipProcessorGUI:
             #remove any p:UUID attributes
             rem_pUUID = re.sub(r'p:UUID[^"]+"[^"]+"', '', rem_xmlns)
             #remove any encoding attributes, since lxml only likes utf-8
-            rem_encoding = re.sub("encoding=\"[0-9A-Z\\-]*\"", "", rem_pUUID)
+            rem_encoding = re.sub(r'encoding=[\'"][\w\d-]+[\'"]', "", rem_pUUID)
             #replace the paint attribute with the slic3rpe namespace
             rem_paint_color = rem_encoding.replace("paint_color", "slic3rpe:mmu_segmentation")
             #replace the model tag with a new one that has the correct namespaces for prusa format
@@ -320,9 +320,14 @@ class ZipProcessorGUI:
 
     def cleanup(self):
         logging.debug("Cleaning up temporary files")
+        # Clear the temporary directory and reset the model paths
+        self.bambu_model_paths = []
+        self.prusa_model_paths = {}
         # Clean up the temporary directory
         if os.path.exists(self.temp_3mf_dir):
             shutil.rmtree(self.temp_3mf_dir)
+        # Reset the temporary directory
+        self.temp_3mf_dir = tempfile.TemporaryDirectory().name
         self.status_label.config(text="Temporary files cleaned up.")
 
 def main():
